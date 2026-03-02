@@ -127,11 +127,13 @@
             if (!res.ok) throw new Error(data.error || "Failed to place order");
 
             if (paymentMethod === "online" && data.payment_url) {
+                // Do NOT clear cart here. Wait for successful return from Stripe.
                 window.location.href = data.payment_url;
                 return;
             }
 
             isRedirecting = true;
+            // Only clear cart here if payment method is NOT online
             cart.clearCart();
             toast.success("Order placed successfully!");
             goto(`/order/${data.tracking_token}`);

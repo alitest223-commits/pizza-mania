@@ -43,7 +43,55 @@ export const POST: RequestHandler = async ({ request, url }) => {
         // Generate tracking token
         const trackingToken = generateTrackingToken();
 
-        // Insert order
+        // If online payment, create Stripe checkout session BEFORE inserting into DB
+        if (payload.payment_method === 'online') {
+            try {
+                const { stripe } = await import('$lib/stripe.server');
+                const appUrl = url.origin;
+
+                const session = await stripe.checkout.sessions.create({
+                    payment_method_types: ['card'],
+                    mode: 'payment',
+                    line_items: payload.items.map((item) => ({
+                        price_data: {
+                            currency: 'eur',
+                            product_data: { name: item.item_name },
+                            unit_amount: Math.round(item.item_price * 100),
+                        },
+                        quantity: item.quantity,
+                    })),
+                    ...(deliveryFee > 0
+                        ? {
+                            shipping_options: [{
+                                shipping_rate_data: {
+                                    type: 'fixed_amount' as const,
+                                    fixed_amount: { amount: Math.round(deliveryFee * 100), currency: 'eur' },
+                                    display_name: 'Delivery Fee',
+                                },
+                            }],
+                        }
+                        : {}),
+                    success_url: `${appUrl}/order/${trackingToken}?payment=success`,
+                    cancel_url: `${appUrl}/checkout?payment=cancelled`,
+                    metadata: {
+                        tracking_token: trackingToken,
+                        // We serialize the entire payload into metadata to reconstruct the order on the webhook
+                        payload: JSON.stringify(payload),
+                    },
+                });
+
+                // Do NOT insert into the database yet. Return the session URL immediately.
+                return json({
+                    tracking_token: trackingToken,
+                    payment_url: session.url,
+                });
+            } catch (stripeError) {
+                console.error('Stripe error:', stripeError);
+                return json({ error: 'Payment setup failed' }, { status: 500 });
+            }
+        }
+
+        // If NOT online, insert order into database
         const { data: order, error: orderError } = await supabase
             .from('orders')
             .insert({
@@ -101,67 +149,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
             changed_by: null,
         });
 
-        // If online payment, create Stripe checkout session
-        if (payload.payment_method === 'online') {
-            try {
-                const { stripe } = await import('$lib/stripe.server');
-                const appUrl = url.origin;
-
-                const session = await stripe.checkout.sessions.create({
-                    payment_method_types: ['card'],
-                    mode: 'payment',
-                    line_items: payload.items.map((item) => ({
-                        price_data: {
-                            currency: 'eur',
-                            product_data: { name: item.item_name },
-                            unit_amount: Math.round(item.item_price * 100),
-                        },
-                        quantity: item.quantity,
-                    })),
-                    ...(deliveryFee > 0
-                        ? {
-                            shipping_options: [{
-                                shipping_rate_data: {
-                                    type: 'fixed_amount' as const,
-                                    fixed_amount: { amount: Math.round(deliveryFee * 100), currency: 'eur' },
-                                    display_name: 'Delivery Fee',
-                                },
-                            }],
-                        }
-                        : {}),
-                    success_url: `${appUrl}/order/${trackingToken}?payment=success`,
-                    cancel_url: `${appUrl}/checkout?payment=cancelled`,
-                    metadata: {
-                        order_id: order.id,
-                        tracking_token: trackingToken,
-                    },
-                });
-
-                await supabase
-                    .from('orders')
-                    .update({ stripe_session_id: session.id })
-                    .eq('id', order.id);
-
-                if (order.customer_email) {
-                    const fullOrderForEmail: OrderWithItems = { ...order, order_items: orderItems as any };
-                    sendOrderConfirmationEmail(fullOrderForEmail, order.customer_email, url.origin).catch(console.error);
-                }
-
-                return json({
-                    tracking_token: trackingToken,
-                    order_id: order.id,
-                    payment_url: session.url,
-                });
-            } catch (stripeError) {
-                console.error('Stripe error:', stripeError);
-                return json({
-                    tracking_token: trackingToken,
-                    order_id: order.id,
-                    error_payment: 'Payment setup failed, but order was created',
-                });
-            }
-        }
-
+        // Send confirmation email
         if (order.customer_email) {
             const fullOrderForEmail: OrderWithItems = { ...order, order_items: orderItems as any };
             sendOrderConfirmationEmail(fullOrderForEmail, order.customer_email, url.origin).catch(console.error);
