@@ -91,7 +91,7 @@ export async function sendOrderConfirmationEmail(order: OrderWithItems, toEmail:
         </div>
 
         <div style="text-align: center;">
-            <a href="${originUrl}/order/${order.tracking_token}" class="button">Track Your Order</a>
+            <a href="${originUrl}/order/${order.tracking_token}" class="button" style="color: #ffffff;">Track Your Order</a>
         </div>
     `;
 
@@ -166,7 +166,7 @@ export async function sendOrderStatusEmail(order: OrderWithItems, toEmail: strin
         <p style="font-size: 18px; font-weight: bold; color: #e53935;">${mainMessage}</p>
         
         <div style="text-align: center; margin-top: 30px;">
-            <a href="${originUrl}/order/${order.tracking_token}" class="button">View Order Details</a>
+            <a href="${originUrl}/order/${order.tracking_token}" class="button" style="color: #ffffff;">View Order Details</a>
         </div>
     `;
 
@@ -197,7 +197,7 @@ export async function sendNewsletterWelcomeEmail(toEmail: string, originUrl: str
         </div>
 
         <div style="text-align: center;">
-            <a href="${originUrl}/menu" class="button">Order Now</a>
+            <a href="${originUrl}/menu" class="button" style="color: #ffffff;">Order Now</a>
         </div>
         <p style="font-size: 12px; color: #999; margin-top: 40px; text-align: center;">
             You are receiving this because you subscribed to Pizza Mania updates. 

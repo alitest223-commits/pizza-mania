@@ -39,7 +39,7 @@
                 <input 
                     type="text" 
                     bind:value={token} 
-                    placeholder="e.g. PM-123456" 
+                    placeholder="e.g. ORD-AB12CD" 
                     required
                     class="track-input"
                 />

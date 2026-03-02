@@ -71,6 +71,7 @@
         const newErrors: Record<string, string> = {};
         if (!customerName.trim()) newErrors.name = "Name is required";
         if (!customerPhone.trim()) newErrors.phone = "Phone number is required";
+        if (!customerEmail.trim()) newErrors.email = "Email is required";
         if (orderType === "delivery" && !deliveryAddress.trim())
             newErrors.address = "Delivery address is required";
         errors = newErrors;
@@ -224,18 +225,22 @@
                                 </p>{/if}
                         </div>
                         <div class="field form-full">
-                            <label class="label">Email</label>
+                            <label class="label">Email *</label>
                             <input
                                 type="email"
                                 class="input"
                                 placeholder="your@email.com (for order updates)"
                                 bind:value={customerEmail}
                             />
+                            {#if errors.email}<p class="error-msg">
+                                    {errors.email}
+                                </p>{/if}
                         </div>
                         {#if orderType === "delivery"}
                             <div class="field form-full">
                                 <label class="label">Delivery Address *</label>
                                 <AddressAutocomplete
+                                    disabled={true}
                                     bind:value={deliveryAddress}
                                     placeholder="Street address, apartment, city, postal code"
                                 />
