@@ -216,3 +216,69 @@ export async function sendNewsletterWelcomeEmail(toEmail: string, originUrl: str
         console.error('Failed to send newsletter email:', error);
     }
 }
+
+// ─── Admin Notification ────────────────────────────────────────────────
+
+const ADMIN_EMAIL = 'pizzamania.ars@gmail.com';
+
+export async function sendAdminOrderNotificationEmail(order: OrderWithItems, originUrl: string) {
+    if (!env.SMTP_USER || !env.SMTP_PASS) {
+        console.warn('SMTP credentials not found. Skipping admin notification email.');
+        return;
+    }
+
+    const orderTypeLabel = ORDER_TYPE_LABELS[order.order_type] || order.order_type;
+    const paymentLabel = order.payment_method === 'online' ? '💳 Online (Paid)' : '💵 At Counter';
+
+    const orderInfoRows = [
+        `<tr><td style="padding:6px 0;color:#666;width:140px;">Order #</td><td style="padding:6px 0;font-weight:bold;">${order.tracking_token}</td></tr>`,
+        `<tr><td style="padding:6px 0;color:#666;">Customer</td><td style="padding:6px 0;">${order.customer_name || '—'}</td></tr>`,
+        `<tr><td style="padding:6px 0;color:#666;">Phone</td><td style="padding:6px 0;">${order.customer_phone || '—'}</td></tr>`,
+        `<tr><td style="padding:6px 0;color:#666;">Email</td><td style="padding:6px 0;">${order.customer_email || '—'}</td></tr>`,
+        `<tr><td style="padding:6px 0;color:#666;">Order Type</td><td style="padding:6px 0;">${orderTypeLabel}</td></tr>`,
+        `<tr><td style="padding:6px 0;color:#666;">Payment</td><td style="padding:6px 0;">${paymentLabel}</td></tr>`,
+        order.delivery_address ? `<tr><td style="padding:6px 0;color:#666;">Address</td><td style="padding:6px 0;">${order.delivery_address}</td></tr>` : '',
+        order.scheduled_time
+            ? `<tr><td style="padding:6px 0;color:#666;">Scheduled</td><td style="padding:6px 0;">${new Date(order.scheduled_time).toLocaleString('fr-FR', { weekday: 'long', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td></tr>`
+            : `<tr><td style="padding:6px 0;color:#666;">Time</td><td style="padding:6px 0;">ASAP</td></tr>`,
+        (order as any).special_instructions ? `<tr><td style="padding:6px 0;color:#666;">Notes</td><td style="padding:6px 0;font-style:italic;">${(order as any).special_instructions}</td></tr>` : '',
+    ].filter(Boolean).join('');
+
+    const itemsHtml = order.order_items.map(item => `
+        <div class="item-row">
+            <span>${item.quantity}× ${item.item_name}${item.notes ? ` <em style="color:#888;font-size:12px;">(${item.notes})</em>` : ''}</span>
+            <span>${formatPrice(item.item_price * item.quantity)}</span>
+        </div>
+    `).join('');
+
+    const content = `
+        <h2 style="color:#e53935;">🍕 New Order Received!</h2>
+        <p>A new order has just been placed. Here are the details:</p>
+        <div class="order-details">
+            <h3>Customer &amp; Order Info</h3>
+            <table style="width:100%;border-collapse:collapse;margin-bottom:12px;">${orderInfoRows}</table>
+            <hr style="border:0;border-top:1px solid #ddd;margin:15px 0;">
+            <h3>Items Ordered</h3>
+            ${itemsHtml}
+            <div class="total-row">
+                <span>Total</span>
+                <span>${formatPrice(order.total)}</span>
+            </div>
+        </div>
+        <div style="text-align: center;">
+            <a href="${originUrl}/admin/orders" class="button" style="color: #ffffff;">View in Admin Panel</a>
+        </div>
+    `;
+
+    try {
+        await transporter.sendMail({
+            from: defaultFrom,
+            to: ADMIN_EMAIL,
+            subject: `🍕 Nouvelle commande #${order.tracking_token} — ${orderTypeLabel} — ${formatPrice(order.total)}`,
+            html: getEmailTemplate(`New Order #${order.tracking_token}`, content)
+        });
+        console.log(`Admin notification sent to ${ADMIN_EMAIL} for order ${order.tracking_token}`);
+    } catch (error) {
+        console.error('Failed to send admin notification email:', error);
+    }
+}

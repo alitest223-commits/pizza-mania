@@ -4,7 +4,7 @@ import { createAdminClient } from '$lib/supabase/admin';
 import { generateTrackingToken } from '$lib/utils';
 import type { CreateOrderPayload, OrderWithItems } from '$lib/types';
 import { DELIVERY_FEE } from '$lib/constants';
-import { sendOrderConfirmationEmail } from '$lib/server/email';
+import { sendOrderConfirmationEmail, sendAdminOrderNotificationEmail } from '$lib/server/email';
 
 export const POST: RequestHandler = async ({ request, url }) => {
     try {
@@ -149,11 +149,15 @@ export const POST: RequestHandler = async ({ request, url }) => {
             changed_by: null,
         });
 
-        // Send confirmation email
+        // Send confirmation email to customer
         if (order.customer_email) {
             const fullOrderForEmail: OrderWithItems = { ...order, order_items: orderItems as any };
             sendOrderConfirmationEmail(fullOrderForEmail, order.customer_email, url.origin).catch(console.error);
         }
+
+        // Notify admin of new order
+        const fullOrderForAdmin: OrderWithItems = { ...order, order_items: orderItems as any };
+        sendAdminOrderNotificationEmail(fullOrderForAdmin, url.origin).catch(console.error);
 
         return json({
             tracking_token: trackingToken,

@@ -17,6 +17,7 @@
     import { toast } from "svelte-sonner";
     import { createClient } from "$lib/supabase/client";
     import { settings } from "$lib/stores/settings";
+    import { t } from "$lib/stores/language";
 
     const supabase = createClient();
 
@@ -126,8 +127,10 @@
         if (!deal) return;
 
         const options: Record<string, string> = {
-            "Valid for":
-                orderType === "takeaway" ? "Self Pickup" : "Home Delivery",
+            "Valable pour":
+                orderType === "takeaway"
+                    ? $t("checkout.pickup")
+                    : $t("checkout.delivery"),
         };
 
         steps.forEach((s) => {
@@ -152,8 +155,10 @@
         // If menuItem ID is needed (based on previous fix)
         // We'll trust the checkout page to handle isDeal: true
 
-        cart.addItem(cartItem, 1, options, "Special Deal Bundle");
-        toast.success(`${deal.title} added to cart!`);
+        cart.addItem(cartItem, 1, options, $t("deal.bundle_note"));
+        toast.success(
+            `${deal.title} ${$t("menu.added").replace("{name}", "")}`,
+        );
         goto("/cart");
     }
 
@@ -178,14 +183,16 @@
     {#if loading}
         <div class="state-container">
             <Loader2 size={48} class="animate-spin text-accent" />
-            <p>Gathering the ingredients...</p>
+            <p>{$t("deal.loading")}</p>
         </div>
     {:else if fetchError || !deal}
         <div class="state-container">
             <Info size={48} class="text-danger" />
-            <h2>Oops!</h2>
-            <p>{fetchError || "We could not find this special offer."}</p>
-            <a href="/offers" class="btn btn-primary mt-4">Back to Offers</a>
+            <h2>{$t("deal.error_title")}</h2>
+            <p>{fetchError || $t("deal.error_desc")}</p>
+            <a href="/offers" class="btn btn-primary mt-4"
+                >{$t("deal.back_offers")}</a
+            >
         </div>
     {:else}
         <div class="builder-container">
@@ -196,8 +203,8 @@
                         <h1>{deal.title}</h1>
                         <div class="deal-badge">
                             {orderType === "takeaway"
-                                ? "Takeaway Only"
-                                : "Delivery Deal"}
+                                ? $t("offers.takeaway_only")
+                                : $t("deal.delivery_deal")}
                         </div>
                     </div>
 
@@ -210,7 +217,12 @@
 
                     <div class="builder-progress">
                         <div class="progress-info">
-                            <span>Step {step + 1} of {steps.length}</span>
+                            <span
+                                >{$t("deal.step")}
+                                {step + 1}
+                                {$t("deal.of")}
+                                {steps.length}</span
+                            >
                             <span>{Math.round(currentProgress)}%</span>
                         </div>
                         <div class="progress-track">
@@ -222,7 +234,7 @@
                     </div>
 
                     <div class="selections-summary">
-                        <h4>Your Selection</h4>
+                        <h4>{$t("deal.your_selection")}</h4>
                         <ul class="summary-list">
                             {#each steps as s, i}
                                 <li
@@ -236,7 +248,7 @@
                                         </div>
                                         <div class="summary-step-value">
                                             {selections[s.id]?.name ||
-                                                "Pending..."}
+                                                $t("deal.pending")}
                                         </div>
                                     </div>
                                     {#if selections[s.id]}
@@ -253,10 +265,11 @@
                             disabled={!isAllComplete}
                             onclick={addToCart}
                         >
-                            Complete Order <ShoppingBag size={20} />
+                            {$t("deal.complete_order")}
+                            <ShoppingBag size={20} />
                         </button>
                         <a href="/offers" class="cancel-link"
-                            >Cancel and go back</a
+                            >{$t("deal.cancel_back")}</a
                         >
                     </div>
                 </div>
@@ -266,7 +279,7 @@
             <main class="builder-main">
                 <div class="selection-header">
                     <h2>{steps[step]?.title}</h2>
-                    <p>Select one from the options below</p>
+                    <p>{$t("deal.select_one")}</p>
                 </div>
 
                 <div class="items-grid">
@@ -346,7 +359,8 @@
                 <div class="desktop-nav-footer desktop-only">
                     {#if step > 0}
                         <button class="btn btn-outline" onclick={prevStep}>
-                            <ChevronLeft size={18} /> Previous Step
+                            <ChevronLeft size={18} />
+                            {$t("deal.prev_step")}
                         </button>
                     {:else}
                         <div></div>
@@ -358,7 +372,8 @@
                             onclick={nextStep}
                             disabled={!isStepComplete}
                         >
-                            Next Step <ChevronRight size={18} />
+                            {$t("deal.next_step")}
+                            <ChevronRight size={18} />
                         </button>
                     {/if}
                 </div>

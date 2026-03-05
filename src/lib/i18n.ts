@@ -230,6 +230,43 @@ export const translations: TranslationDictionary = {
         'table.seated': 'Vous êtes à la',
         'table.redirecting': 'Redirection vers le menu...',
         'table.browse': 'Voir le menu',
+
+        // ── Order Status Labels (Supabase-driven) ─────────────────────────────
+        'status.new': 'Nouvelle commande',
+        'status.confirmed': 'Confirmée',
+        'status.preparing': 'En préparation',
+        'status.ready': 'Prête',
+        'status.out_for_delivery': 'En livraison',
+        'status.delivered': 'Livrée',
+        'status.picked_up': 'Récupérée',
+        'status.served': 'Servie',
+        'status.cancelled': 'Annulée',
+
+        // ── Order Type Labels (Supabase-driven) ───────────────────────────────
+        'order_type.delivery': 'Livraison à domicile',
+        'order_type.pickup': 'À emporter',
+        'order_type.dine_in': 'Sur place',
+
+        // ── Deal Builder ──────────────────────────────────────────────────────
+        'deal.loading': 'Préparation des ingrédients...',
+        'deal.error_title': 'Oops !',
+        'deal.error_desc': "Nous n'avons pas trouvé cette offre.",
+        'deal.back_offers': 'Retour aux offres',
+        'deal.delivery_deal': 'Offre livraison',
+        'deal.step': 'Étape',
+        'deal.of': 'sur',
+        'deal.your_selection': 'Votre sélection',
+        'deal.pending': 'En attente...',
+        'deal.complete_order': 'Finaliser la commande',
+        'deal.cancel_back': 'Annuler et retourner',
+        'deal.select_one': 'Sélectionnez une option ci-dessous',
+        'deal.prev_step': 'Étape précédente',
+        'deal.next_step': 'Étape suivante',
+        'deal.bundle_note': 'Offre spéciale',
+
+        // ── Toast messages ────────────────────────────────────────────────────
+        'menu.added': 'ajouté au panier !',
+        'menu.select_required': 'Veuillez sélectionner {opt}',
     },
 
     en: {
@@ -461,5 +498,42 @@ export const translations: TranslationDictionary = {
         'table.seated': "You're seated at",
         'table.redirecting': 'Redirecting to menu...',
         'table.browse': 'Browse Menu Now',
+
+        // ── Order Status Labels (Supabase-driven) ─────────────────────────────
+        'status.new': 'New Order',
+        'status.confirmed': 'Confirmed',
+        'status.preparing': 'Preparing',
+        'status.ready': 'Ready',
+        'status.out_for_delivery': 'Out for Delivery',
+        'status.delivered': 'Delivered',
+        'status.picked_up': 'Picked Up',
+        'status.served': 'Served',
+        'status.cancelled': 'Cancelled',
+
+        // ── Order Type Labels (Supabase-driven) ───────────────────────────────
+        'order_type.delivery': 'Home Delivery',
+        'order_type.pickup': 'Self Pickup',
+        'order_type.dine_in': 'Dine In',
+
+        // ── Deal Builder ──────────────────────────────────────────────────────
+        'deal.loading': 'Gathering the ingredients...',
+        'deal.error_title': 'Oops!',
+        'deal.error_desc': 'We could not find this special offer.',
+        'deal.back_offers': 'Back to Offers',
+        'deal.delivery_deal': 'Delivery Deal',
+        'deal.step': 'Step',
+        'deal.of': 'of',
+        'deal.your_selection': 'Your Selection',
+        'deal.pending': 'Pending...',
+        'deal.complete_order': 'Complete Order',
+        'deal.cancel_back': 'Cancel and go back',
+        'deal.select_one': 'Select one from the options below',
+        'deal.prev_step': 'Previous Step',
+        'deal.next_step': 'Next Step',
+        'deal.bundle_note': 'Special Deal Bundle',
+
+        // ── Toast messages ────────────────────────────────────────────────────
+        'menu.added': '{name} added to cart!',
+        'menu.select_required': 'Please select {opt}',
     }
 };

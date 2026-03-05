@@ -88,14 +88,17 @@ export const POST: RequestHandler = async ({ request }) => {
 
                         console.log(`Order created from webhook with tracking token ${trackingToken}`);
 
-                        // Send confirmation email asynchronously
+                        // Send emails asynchronously
+                        const { sendOrderConfirmationEmail, sendAdminOrderNotificationEmail } = await import('$lib/server/email');
+                        const url = new URL(request.url);
+                        const fullOrderForEmail = { ...order, order_items: orderItems as any };
+
                         if (order.customer_email) {
-                            const { sendOrderConfirmationEmail } = await import('$lib/server/email');
-                            const url = new URL(request.url);
-                            // Ensure origin url is formatted correctly for email context
-                            const fullOrderForEmail = { ...order, order_items: orderItems as any };
                             sendOrderConfirmationEmail(fullOrderForEmail, order.customer_email, url.origin).catch(console.error);
                         }
+
+                        // Notify admin
+                        sendAdminOrderNotificationEmail(fullOrderForEmail, url.origin).catch(console.error);
                     }
                 }
             }
