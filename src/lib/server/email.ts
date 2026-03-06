@@ -12,7 +12,16 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: env.SMTP_USER,
         pass: env.SMTP_PASS
-    }
+    },
+    tls: {
+        rejectUnauthorized: true,
+        minVersion: 'TLSv1.2'
+    },
+    connectionTimeout: 20000, // 20 seconds
+    greetingTimeout: 15000,   // 15 seconds
+    socketTimeout: 20000,     // 20 seconds
+    debug: true,              // Log the handshake in your Vercel logs
+    logger: true
 });
 
 const defaultFrom = `"${env.EMAIL_FROM || 'Pizza Mania'}" <${env.SMTP_USER}>`;
